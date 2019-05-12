@@ -12,12 +12,14 @@ public class Importer {
 
 	private BufferedImage image;
 	private char[][] matrix;
+	private Integer[][] intMatrix;
 
 	public Importer(String dir, String to) {
 		try {
 			// the line that reads the image file
 			image = ImageIO.read(new File(dir));
 			matrix = new char[image.getWidth()][image.getHeight()];
+			intMatrix = new Integer[image.getWidth()][image.getHeight()];
 
 			for (int i = 0; i < image.getWidth(); i++) {
 				for (int j = 0; j < image.getHeight(); j++) {
@@ -25,11 +27,14 @@ public class Importer {
 
 					Color color = new Color(subImage.getRGB(subImage.getMinX(), subImage.getMinTileY()), true);
 					Integer grays = (color.getRed() + color.getBlue() + color.getGreen()) / 3;
+					intMatrix[i][j] = (color.getRed() + color.getBlue() + color.getGreen()) / 3;
 
-					matrix = grayToChar(grays, matrix, i, j);
+//					matrix = grayToChar(grays, matrix, i, j);
+//					intMatrix = grayToInt(grays, intMatrix, i, j);
 				}
 			}
-			saveMatrixToFile(matrix, to);
+			saveMatrixToFile(intMatrix, to);
+//			saveMatrixToFile(matrix, to);
 		} catch (IOException e) {
 			// log the exception
 			// re-throw if desired
@@ -42,6 +47,7 @@ public class Importer {
 			// the line that reads the image file
 			image = ImageIO.read(new File(dir));
 			matrix = new char[n][m];
+//			intMatrix = new int[n][m];
 
 			Integer metaBlockX = image.getWidth() / n;
 			Integer metaBlockY = image.getHeight() / m;
@@ -54,8 +60,10 @@ public class Importer {
 					Integer grays = (color.getRed() + color.getBlue() + color.getGreen()) / 3;
 
 					matrix = grayToChar(grays, matrix, i, j);
+//					intMatrix = grayToInt(grays, intMatrix, i, j);
 				}
 			}
+//			saveMatrixToFile(intMatrix, to);
 			saveMatrixToFile(matrix, to);
 		} catch (IOException e) {
 			// log the exception
@@ -79,7 +87,12 @@ public class Importer {
 		this.matrix = matrix;
 	}
 
-	private char[][] grayToChar(int grays, char[][] matrix, int i, int j) {
+	private static int[][] grayToInt(int grays, int[][] matrix, int i, int j) {
+		matrix[i][j] = grays;
+		return matrix;
+	}
+
+		private char[][] grayToChar(int grays, char[][] matrix, int i, int j) {
 		if (isBetween(grays, 0, 24)) {
 			matrix[i][j] = '@';
 
@@ -105,7 +118,7 @@ public class Importer {
 			matrix[i][j] = ':';
 
 		} else if (isBetween(grays, 200, 224)) {
-			matrix[i][j] = '·';
+			matrix[i][j] = '.';
 
 		} else if (isBetween(grays, 225, 255)) {
 			matrix[i][j] = ' ';
@@ -135,6 +148,18 @@ public class Importer {
 		for (int i = 0; i < matrix.length; i++) {
 			for (int j = 0; j < matrix[i].length; j++) {
 				writer.write(matrix[j][i]);
+			}
+			writer.write('\n');
+		}
+		writer.close();
+	}
+
+	private void saveMatrixToFile(Integer[][] matrix, String to) throws IOException {
+		BufferedWriter writer = new BufferedWriter(new FileWriter(to));
+
+		for (int i = 0; i < matrix.length; i++) {
+			for (int j = 0; j < matrix[i].length; j++) {
+				writer.write(String.valueOf(matrix[j][i]+ " "));
 			}
 			writer.write('\n');
 		}
